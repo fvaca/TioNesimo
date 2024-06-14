@@ -47,37 +47,61 @@ bot.on('message', async (msg) => {
     const chatType = msg.chat.type;
     const chatTitle = msg.chat.title;
     const messagetime = msg.date;
-    //console.log("Author: " + Author +" ||| "+ "Message: " + userText);
-    logOutput(messagetime + " | ID: " + chatId +  " | Type" + chatType + " | Author: " + Author +" | Message: " + userText);
-  
-   // Check if the message is not empty
-  if (userText) {
-    try {
+    const botName = (await bot.getMe()).username;
+    const botFirstName = "nesimo";
+   
+    const regex_botname = RegExp('@'+botName, 'i')
+    const regex_firstname = RegExp(botFirstName.toLowerCase(), 'i')
+    logOutput("bot name: " + botName + "Name: "+ botFirstName);  
+    logOutput(messagetime + " | ID: " + chatId +  " | Type: " + chatType + " | Author: " + Author +" | Message: " + userText);
+   
+    // Check if the message is not empty and the bot is mentioned
+    isGroup = chatType == "group" || chatType == "supergroup";
+    const shallReply = userText && ((chatType == "private" && userText) 
+    || (isGroup && regex_botname.exec(userText.trim())) 
+    || (isGroup && regex_firstname.exec(userText.trim().toLowerCase())));
+   if (shallReply) {
+      try {
 
-      // messages: [{"role": "system", "content": "You are a helpful assistant."},
-      //   {"role": "user", "content": "Who won the world series in 2020?"},
-      //   {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
-      //   {"role": "user", "content": "Where was it played?"}],
+        // messages: [{"role": "system", "content": "You are a helpful assistant."},
+        //   {"role": "user", "content": "Who won the world series in 2020?"},
+        //   {"role": "assistant", "content": "The Los Angeles Dodgers won the World Series in 2020."},
+        //   {"role": "user", "content": "Where was it played?"}],
 
-      // messages: [{ role: "system", content: userText }],
-      const gptResponse = await openai.chat.completions.create({
-        messages: [{"role": "user", "content": "reply with a sarcastic response in spanish"},
-                  {role: "assistant", content: "I'm a helpful comedian."}
-        ],
-        model: "gpt-4o",
-      });
-      
-      const replyText = gptResponse.choices[0].message.content.trim();
-      //console.log("Author: GPT"+" ||| "+ "Message: " + replyText)
-      logOutput(messagetime + " | ID: " + chatId +  " | Type" + chatType + " | Author: " + Author +" | Message: " + replyText);
+        // messages: [{ role: "system", content: userText }],
+        // [{"role": "user", "content": "reply with a sarcastic in spanish in respose to the following message: " + userText},
+        //   {role: "assistant", content: "I'm a helpful comedian."}
 
-      await bot.sendMessage(chatId, replyText);
-    } catch (error) {
-      //console.error(error);
-      logOutput(error);
-      await bot.sendMessage(chatId, "Sorry, I couldn't process your request.");
+      //   messages=[
+      //     {"role": "system", "content": "Respond as a pirate."},
+      //     {"role": "user", "content": "What is it like to sail?"},
+      //     {"role": "assistant", "content": "Rrrr, sailing be about adventure!"},
+      //     {"role": "user", "content": "How do you do it?"}
+      // ]
+
+    //   messages=[
+    //     {"role": "system", "content": "Eres una asistente útil que responde como un Venezolano."},
+    //     {"role": "user", "content": userText}
+    // ]
+        
+        const gptResponse = await openai.chat.completions.create({
+          messages: [{ role: "system", content: "Eres una asistente útil que responde como un Venezolano." },
+                    {"role": "user", "content": userText}
+              ],
+          model: "gpt-4o",
+        });
+        
+        const replyText = gptResponse.choices[0].message.content.trim();
+        logOutput(messagetime + " | ID: " + chatId +  " | Type" + chatType + " | Author: " + Author +" | Message: " + replyText);
+
+        await bot.sendMessage(chatId, replyText);
+
+
+      } catch (error) {
+        logOutput(error);
+        await bot.sendMessage(chatId, "Sorry, I couldn't process your request.");
+      }
     }
-  }
 
   });
 
