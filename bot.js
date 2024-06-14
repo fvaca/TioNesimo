@@ -85,7 +85,7 @@ bot.on('message', async (msg) => {
     // ]
         
         const gptResponse = await openai.chat.completions.create({
-          messages: [{ role: "system", content: "Eres una asistente útil que responde como un Venezolano." },
+          messages: [{ role: "system", content: "Eres una asistente útil que responde como un malandro venezolano." },
                     {"role": "user", "content": userText}
               ],
           model: "gpt-4o",
